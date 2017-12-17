@@ -5,6 +5,7 @@ import (
 	"github.com/beldur/kraken-go-api-client"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"gopkg.in/alecthomas/kingpin.v2"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
@@ -12,7 +13,8 @@ import (
 )
 
 var (
-	addr = flag.String("listen-address", ":8080", "The address to listen on for HTTP requests.")
+	debug = kingpin.Flag("debug", "Debug mode.").Short('d').Default("false").Bool()
+	addr  = kingpin.Flag("address", "The address to listen on for HTTP requests").Default(":8080").String()
 
 	openingPrices = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "opening_prices",
@@ -27,6 +29,8 @@ func init() {
 }
 
 func main() {
+	kingpin.Parse()
+
 	go func() {
 		api := krakenapi.New("KEY", "SECRET")
 		for {
@@ -35,12 +39,12 @@ func main() {
 				if ticker == nil {
 					log.Warning("Result was empty. Prices not updated.")
 				} else {
-					log.Warning(err)
+					log.Fatal(err)
 				}
+			} else {
+				askPrice, _ := strconv.ParseFloat(ticker.XXBTZEUR.Ask[0], 64)
+				openingPrices.WithLabelValues("XXBTZEUR").Set(askPrice)
 			}
-
-			askPrice, _ := strconv.ParseFloat(ticker.XXBTZEUR.Ask[0], 64)
-			openingPrices.WithLabelValues("XXBTZEUR").Set(askPrice)
 
 			time.Sleep(time.Duration(5 * time.Second))
 		}
