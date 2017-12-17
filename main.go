@@ -5,9 +5,10 @@ import (
 	"github.com/beldur/kraken-go-api-client"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"gopkg.in/alecthomas/kingpin.v2"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/alecthomas/kingpin.v2"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -32,7 +33,10 @@ func main() {
 	kingpin.Parse()
 
 	go func() {
-		api := krakenapi.New("KEY", "SECRET")
+		key := os.Getenv("KEY")
+		secret := os.Getenv("SECRET")
+		api := krakenapi.New(key, secret)
+
 		for {
 			ticker, err := api.Ticker(krakenapi.XXBTZEUR)
 			if err != nil {
