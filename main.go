@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	debug = kingpin.Flag("debug", "Debug mode.").Short('d').Default("false").Bool()
-	addr  = kingpin.Flag("address", "The address to listen on for HTTP requests").Default(":8080").String()
+	debug = kingpin.Flag("debug", "Enable debug mode.").Short('d').Default("false").Bool()
+	addr  = kingpin.Flag("address", "The address to listen on for HTTP requests").Short('a').Default(":8080").String()
 
 	openingPrices = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "opening_prices",
