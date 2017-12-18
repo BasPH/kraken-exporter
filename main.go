@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"github.com/beldur/kraken-go-api-client"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -54,7 +53,6 @@ func main() {
 		}
 	}()
 
-	flag.Parse()
 	http.Handle("/metrics", promhttp.Handler())
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }
