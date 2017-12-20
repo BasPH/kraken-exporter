@@ -22,10 +22,16 @@ var (
 	},
 		[]string{"pair"},
 	)
+
+	totalBalance = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "total_balance",
+		Help: "Total balance",
+	})
 )
 
 func init() {
 	prometheus.MustRegister(openingPrices)
+	prometheus.MustRegister(totalBalance)
 }
 
 func main() {
