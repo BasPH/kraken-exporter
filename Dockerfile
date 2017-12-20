@@ -9,6 +9,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-s -w' && \
     upx --brute kraken-exporter
 
 FROM scratch
-COPY --from=builder /go/src/github.com/BasPH/kraken-exporter .
+COPY --from=builder /go/src/github.com/BasPH/kraken-exporter/kraken-exporter .
 EXPOSE 8080
 ENTRYPOINT ["./kraken-exporter"]
+CMD []
