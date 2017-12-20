@@ -57,6 +57,9 @@ func fetchKrakenPrices() {
 		} else {
 			askPrice, _ := strconv.ParseFloat(ticker.XXBTZEUR.Ask[0], 64)
 			openingPrices.WithLabelValues("XXBTZEUR").Set(askPrice)
+			if *debug {
+				log.Debugf("OpeningPrice set to %v", askPrice)
+			}
 		}
 
 		time.Sleep(time.Duration(5 * time.Second))
@@ -65,6 +68,7 @@ func fetchKrakenPrices() {
 
 func main() {
 	kingpin.Parse()
+	log.Info(os.Args[1:])
 	go fetchKrakenPrices()
 	http.Handle("/metrics", promhttp.Handler())
 	log.Fatal(http.ListenAndServe(*addr, nil))
