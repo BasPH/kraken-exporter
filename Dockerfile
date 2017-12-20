@@ -1,4 +1,5 @@
 # docker build -t basph/kraken-exporter .
+# docker run -d -p 8080:8080 -e "KEY=xxxxx" -e "SECRET=xxxxx" --name kraken-exporter basph/kraken-exporter
 
 FROM golang:1.9.2 AS builder
 WORKDIR /go/src/github.com/BasPH/kraken-exporter
