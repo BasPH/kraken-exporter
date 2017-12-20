@@ -36,11 +36,15 @@ func init() {
 }
 
 func fetchKrakenPrices() {
-	key := os.Getenv("KEY")
-	secret := os.Getenv("SECRET")
+	key, ok := os.LookupEnv("KEY")
+	if !ok {
+		log.Fatal("Environment variable KEY not set")
+	}
+	secret, ok := os.LookupEnv("SECRET")
+	if !ok {
+		log.Fatal("Environment variable SECRET not set")
+	}
 	api := krakenapi.New(key, secret)
-
-	//krakenapi.PairTickerInfo{}
 
 	for {
 		ticker, err := api.Ticker(krakenapi.XXBTZEUR)
