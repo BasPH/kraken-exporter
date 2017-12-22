@@ -65,6 +65,39 @@ func fetchKrakenPrices() {
 	}
 }
 
+func fetchTotalBalance() {
+	key, ok := os.LookupEnv("KEY")
+	if !ok {
+		log.Fatal("Environment variable KEY not set")
+	}
+	secret, ok := os.LookupEnv("SECRET")
+	if !ok {
+		log.Fatal("Environment variable SECRET not set")
+	}
+	api := krakenapi.New(key, secret)
+
+	for {
+		log.Debug("Querying Kraken...")
+		result, err := api.Query("TradeBalance", map[string]string{
+			"asset": "ZEUR",
+		})
+		if err != nil {
+			log.Error(err)
+		} else {
+			if result != nil {
+				r := result.(map[string]interface{})
+				eb := r["eb"].(float64)
+				totalBalance.Set(eb)
+				log.Debugf("Equivalent balance set to %v", eb)
+			} else {
+				log.Warning("Result was empty.")
+			}
+		}
+
+		time.Sleep(time.Duration(5 * time.Second))
+	}
+}
+
 func main() {
 	kingpin.Parse()
 	if *debug {
@@ -72,7 +105,8 @@ func main() {
 	}
 	log.Debugf("Cmd line args: %v", os.Args[1:])
 
-	go fetchKrakenPrices()
+	//go fetchKrakenPrices()
+	go fetchTotalBalance()
 	http.Handle("/metrics", promhttp.Handler())
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }
