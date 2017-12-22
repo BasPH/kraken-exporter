@@ -47,6 +47,7 @@ func fetchKrakenPrices() {
 	api := krakenapi.New(key, secret)
 
 	for {
+		log.Debug("Scraping ticker...")
 		ticker, err := api.Ticker(krakenapi.XXBTZEUR)
 		if err != nil {
 			if ticker == nil {
