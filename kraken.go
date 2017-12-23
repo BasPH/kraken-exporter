@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func fetchKrakenPrices(api *krakenapi.KrakenApi, log *logrus.Logger) {
+func updateKrakenPrices(api *krakenapi.KrakenApi, intervalSec time.Duration, log *logrus.Logger) {
 	for {
 		log.Debug("Scraping ticker...")
 		ticker, err := api.Ticker(krakenapi.XXBTZEUR)
@@ -23,15 +23,15 @@ func fetchKrakenPrices(api *krakenapi.KrakenApi, log *logrus.Logger) {
 			log.Debugf("OpeningPrice set to %v", askPrice)
 		}
 
-		time.Sleep(time.Duration(5 * time.Second))
+		time.Sleep(time.Duration(intervalSec * time.Second))
 	}
 }
 
-func fetchTotalBalance(api *krakenapi.KrakenApi, log *logrus.Logger) {
+func updateTotalBalance(api *krakenapi.KrakenApi, asset string, intervalSec time.Duration, log *logrus.Logger) {
 	for {
 		log.Debug("Querying Kraken...")
 		result, err := api.Query("TradeBalance", map[string]string{
-			"asset": "ZEUR",
+			"asset": asset,
 		})
 		if err != nil {
 			log.Error(err)
@@ -40,13 +40,13 @@ func fetchTotalBalance(api *krakenapi.KrakenApi, log *logrus.Logger) {
 				log.Debug(result)
 				r := result.(map[string]interface{})
 				eb, _ := strconv.ParseFloat(r["eb"].(string), 64)
-				totalBalance.Set(eb)
+				totalBalance.WithLabelValues(asset).Set(eb)
 				log.Debugf("Equivalent balance set to %v", eb)
 			} else {
 				log.Warning("Result was empty.")
 			}
 		}
 
-		time.Sleep(time.Duration(5 * time.Second))
+		time.Sleep(time.Duration(intervalSec * time.Second))
 	}
 }

@@ -13,7 +13,6 @@ import (
 var (
 	debug = kingpin.Flag("debug", "Enable debug mode.").Short('d').Default("false").Bool()
 	addr  = kingpin.Flag("address", "The address to listen on for HTTP requests").Short('a').Default(":8080").String()
-	pairs = kingpin.Flag("pairs", "Pairs to fetch from Kraken").Short('p').Default("XXBTZEUR").String()
 
 	api *krakenapi.KrakenApi
 	log *logrus.Logger
@@ -25,10 +24,12 @@ var (
 		[]string{"pair"},
 	)
 
-	totalBalance = prometheus.NewGauge(prometheus.GaugeOpts{
+	totalBalance = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "total_balance",
 		Help: "Total balance",
-	})
+	},
+		[]string{"currency"},
+	)
 )
 
 func init() {
@@ -56,7 +57,7 @@ func main() {
 	}
 	log.Debugf("Cmd line args: %v", os.Args[1:])
 
-	go fetchTotalBalance(api, log)
+	go updateTotalBalance(api, "ZEUR", 15, log)
 	http.Handle("/metrics", promhttp.Handler())
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }
