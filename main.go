@@ -4,18 +4,19 @@ import (
 	"github.com/beldur/kraken-go-api-client"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"net/http"
 	"os"
-	"strconv"
-	"time"
 )
 
 var (
 	debug = kingpin.Flag("debug", "Enable debug mode.").Short('d').Default("false").Bool()
 	addr  = kingpin.Flag("address", "The address to listen on for HTTP requests").Short('a').Default(":8080").String()
 	pairs = kingpin.Flag("pairs", "Pairs to fetch from Kraken").Short('p').Default("XXBTZEUR").String()
+
+	api *krakenapi.KrakenApi
+	log *logrus.Logger
 
 	openingPrices = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "opening_prices",
@@ -33,9 +34,10 @@ var (
 func init() {
 	prometheus.MustRegister(openingPrices)
 	prometheus.MustRegister(totalBalance)
-}
 
-func fetchKrakenPrices() {
+	log = logrus.New()
+
+	// Init the Kraken API
 	key, ok := os.LookupEnv("KEY")
 	if !ok {
 		log.Fatal("Environment variable KEY not set")
@@ -44,69 +46,17 @@ func fetchKrakenPrices() {
 	if !ok {
 		log.Fatal("Environment variable SECRET not set")
 	}
-	api := krakenapi.New(key, secret)
-
-	for {
-		log.Debug("Scraping ticker...")
-		ticker, err := api.Ticker(krakenapi.XXBTZEUR)
-		if err != nil {
-			if ticker == nil {
-				log.Warning("Result was empty. Prices not updated.")
-			} else {
-				log.Fatal(err)
-			}
-		} else {
-			askPrice, _ := strconv.ParseFloat(ticker.XXBTZEUR.Ask[0], 64)
-			openingPrices.WithLabelValues("XXBTZEUR").Set(askPrice)
-			log.Debugf("OpeningPrice set to %v", askPrice)
-		}
-
-		time.Sleep(time.Duration(5 * time.Second))
-	}
-}
-
-func fetchTotalBalance() {
-	key, ok := os.LookupEnv("KEY")
-	if !ok {
-		log.Fatal("Environment variable KEY not set")
-	}
-	secret, ok := os.LookupEnv("SECRET")
-	if !ok {
-		log.Fatal("Environment variable SECRET not set")
-	}
-	api := krakenapi.New(key, secret)
-
-	for {
-		log.Debug("Querying Kraken...")
-		result, err := api.Query("TradeBalance", map[string]string{
-			"asset": "ZEUR",
-		})
-		if err != nil {
-			log.Error(err)
-		} else {
-			if result != nil {
-				r := result.(map[string]interface{})
-				eb := r["eb"].(float64)
-				totalBalance.Set(eb)
-				log.Debugf("Equivalent balance set to %v", eb)
-			} else {
-				log.Warning("Result was empty.")
-			}
-		}
-
-		time.Sleep(time.Duration(5 * time.Second))
-	}
+	api = krakenapi.New(key, secret)
 }
 
 func main() {
 	kingpin.Parse()
 	if *debug {
-		log.SetLevel(log.DebugLevel)
+		log.SetLevel(logrus.DebugLevel)
 	}
 	log.Debugf("Cmd line args: %v", os.Args[1:])
 
-	//go fetchKrakenPrices()
-	go fetchTotalBalance()
+	go fetchTotalBalance(api, log)
 	http.Handle("/metrics", promhttp.Handler())
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }

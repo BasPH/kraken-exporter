@@ -1,10 +1,10 @@
 package main
 
 import (
-	"testing"
-	"os"
-	"github.com/beldur/kraken-go-api-client"
 	"fmt"
+	"github.com/beldur/kraken-go-api-client"
+	"os"
+	"testing"
 )
 
 func TestGetTradeBalanceEUR(t *testing.T) {
