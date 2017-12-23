@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-SRC = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
+GOFILES = $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
 .PHONY: all test fmt build vet lint
 
@@ -9,13 +9,13 @@ test:
 	@echo do something
 
 fmt:
-	@gofmt -s -l -w $(SRC)
+	@gofmt -s -l -w $(GOFILES)
 
 build:
 	@echo do something
 
 vet:
-	@echo do something
+	@go tool vet $(GOFILES)
 
 lint:
-	@echo do something
+	@for f in $(GOFILES); do golint $d; done
