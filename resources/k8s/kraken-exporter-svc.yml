@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kraken-exporter
+  labels:
+    app: kraken-exporter
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+  selector:
+    app: kraken-exporter

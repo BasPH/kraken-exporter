@@ -1,0 +1,33 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kraken-exporter
+  labels:
+    app: kraken-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kraken-exporter
+  template:
+    metadata:
+      labels:
+        app: kraken-exporter
+    spec:
+      containers:
+        - image: gcr.io/$PROJECT_ID/kraken-exporter:latest
+          name: kraken-exporter
+          env:
+            - name: KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kraken-exporter
+                  key: key
+            - name: SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kraken-exporter
+                  key: secret
+          ports:
+            - containerPort: 8080
+              name: kraken-exporter
