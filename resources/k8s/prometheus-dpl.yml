@@ -18,6 +18,18 @@ spec:
         runAsUser: 1000
         fsGroup: 2000
         runAsNonRoot: true
+      initContainers:
+        - name: configure
+          image: busybox
+          command: ['sh', '-c', 'ls -lah /var/secrets/google && if [ ! -f /prometheus/prometheus.yml ]; then wget -O /prometheus/prometheus.yml kraken-exporter-config.storage.googleapis.com/prometheus.yml; fi']
+          volumeMounts:
+          - name: prometheus-storage
+            mountPath: /prometheus
+          - name: google-storage-key
+            mountPath: /var/secrets/google
+          env:
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /var/secrets/google/key.json
       containers:
         - image: prom/prometheus:v2.0.0
           name: prometheus
@@ -35,3 +47,6 @@ spec:
           gcePersistentDisk:
             pdName: prometheus-disk
             fsType: ext4
+        - name: google-storage-key
+          secret:
+            secretName: storage-key
