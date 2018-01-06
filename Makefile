@@ -21,3 +21,8 @@ build:
 	docker build -t $(IMAGE_NAME) -f Dockerfile .
 	docker tag $(IMAGE_NAME) $(IMAGE_NAME):latest
 	docker tag $(IMAGE_NAME) $(IMAGE_NAME):${GIT_COMMIT}
+
+gcloud:
+	@echo ${PROJECT_ID}
+	docker tag $(IMAGE_NAME) gcr.io/${PROJECT_ID}/kraken-exporter:latest
+	gcloud docker -- push gcr.io/${PROJECT_ID}/kraken-exporter:latest
