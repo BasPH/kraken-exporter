@@ -18,6 +18,19 @@ spec:
         runAsUser: 1000
         fsGroup: 2000
         runAsNonRoot: true
+      initContainers:
+        - name: configure
+          image: busybox
+          command: ['sh', '-c', 'if [ ! -f /prometheus/prometheus.yml ]; then wget --header "Authorization: Bearer $ACCESS_TOKEN" -O /prometheus/prometheus.yml https://www.googleapis.com/storage/v1/b/$CONFIG_BUCKET/o/prometheus.yml?alt=media; fi']
+          volumeMounts:
+          - name: prometheus-storage
+            mountPath: /prometheus
+          env:
+          - name: ACCESS_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: gs-storage
+                key: access_token
       containers:
         - image: prom/prometheus:v2.0.0
           name: prometheus
