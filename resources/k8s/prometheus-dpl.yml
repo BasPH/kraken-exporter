@@ -21,15 +21,16 @@ spec:
       initContainers:
         - name: configure
           image: busybox
-          command: ['sh', '-c', 'ls -lah /var/secrets/google && if [ ! -f /prometheus/prometheus.yml ]; then wget -O /prometheus/prometheus.yml kraken-exporter-config.storage.googleapis.com/prometheus.yml; fi']
+          command: ['sh', '-c', 'if [ ! -f /prometheus/prometheus.yml ]; then wget --header "Authorization: Bearer $ACCESS_TOKEN" -O /prometheus/prometheus.yml https://www.googleapis.com/storage/v1/b/$CONFIG_BUCKET/o/prometheus.yml?alt=media; fi']
           volumeMounts:
           - name: prometheus-storage
             mountPath: /prometheus
-          - name: google-storage-key
-            mountPath: /var/secrets/google
           env:
-          - name: GOOGLE_APPLICATION_CREDENTIALS
-            value: /var/secrets/google/key.json
+          - name: ACCESS_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: gs-storage
+                key: access_token
       containers:
         - image: prom/prometheus:v2.0.0
           name: prometheus
@@ -47,6 +48,3 @@ spec:
           gcePersistentDisk:
             pdName: prometheus-disk
             fsType: ext4
-        - name: google-storage-key
-          secret:
-            secretName: storage-key
